@@ -18,7 +18,7 @@ float average(int arr[], int n) {
 }
 
 /* methot sorting */
-void bubbleSort(Student arr[], int n, string sortBy, string sortOrder) {
+bool bubbleSort(Student arr[], int n, string sortBy, string sortOrder) {
     for (int i = 1; i < n-1; i++) {
         for (int j = n-1; j >= i; j--) { 
             bool tukar = false;
@@ -29,10 +29,13 @@ void bubbleSort(Student arr[], int n, string sortBy, string sortOrder) {
                         tukar = true;
                     }
                 }
-                else {
+                else if (sortOrder == "descending"){
                     if (arr[j-1].nama < arr[j].nama) {
                         tukar = true;
                     }
+                }
+                else {
+                    return false;
                 }
             }
             else if (sortBy == "NIM" || sortBy == "nim") {
@@ -41,10 +44,13 @@ void bubbleSort(Student arr[], int n, string sortBy, string sortOrder) {
                         tukar = true;
                     }
                 }
-                else {
+                else if (sortOrder == "descending") {
                     if (arr[j-1].nim < arr[j].nim) {
                         tukar = true;
                     }
+                }
+                else {
+                    return false;
                 }
             }
             else if (sortBy == "nilai" || sortBy == "nilai rata-rata") {
@@ -53,10 +59,13 @@ void bubbleSort(Student arr[], int n, string sortBy, string sortOrder) {
                         tukar = true;
                     }
                 } 
-                else {
+                else if (sortOrder == "descending") {
                     if (arr[j-1].avgNilai < arr[j].avgNilai) {
                         tukar = true;
                     }
+                }
+                else {
+                    return false;
                 }
             }
             else if (sortBy == "presensi") {
@@ -65,15 +74,17 @@ void bubbleSort(Student arr[], int n, string sortBy, string sortOrder) {
                         tukar = true;
                     }
                 }
-                else {
+                else if (sortOrder == "descending") {
                     if (arr[j-1].presensi < arr[j].presensi) {
                         tukar = true;
                     }
                 }
+                else {
+                    return false;
+                }
             }
             else {
-                cout << "Invalid input" << endl;
-                return;
+                return false;
             }
             
             if (tukar) {
@@ -81,6 +92,7 @@ void bubbleSort(Student arr[], int n, string sortBy, string sortOrder) {
             }
         }
     }
+    return true;
 }
 
 int main() {
@@ -147,7 +159,10 @@ int main() {
             cout << "Pilih menu sorting order: ";
             cin >> sortOrder;
             
-            bubbleSort(students, n, sortBy, sortOrder);
+            if (!bubbleSort(students, n, sortBy, sortOrder)) {
+                cout << "Invalid input\n" << endl;
+                goto Menu;
+            }
             
             cout << "\n-- Hasil pengurutan --" << endl;
             for (int i = 0; i < n; i++) {
@@ -199,7 +214,7 @@ int main() {
             goto Menu;
 
         case '9':
-            system("clear");
+            system("cls");
             goto Menu;
 
         case '0':
