@@ -1,4 +1,5 @@
 #include <iostream>
+#include <queue>  
 #include <string>
 using namespace std;
 
@@ -19,10 +20,10 @@ Node::Node(string name, bool isFile) : name(name), isFile(isFile), childCount(0)
     children = new Node*[capacity];
 }
 
-void Node::addChild(Node* child) {
+void Node::addChild(Node *child) {
     if (childCount == capacity) {
         capacity *= 2;
-        Node** newChildren = new Node*[capacity];
+        Node **newChildren = new Node*[capacity];
         for (int i = 0; i < childCount; ++i) {
             newChildren[i] = children[i];
         }
@@ -63,15 +64,15 @@ Node::~Node() {
 }
 
 struct FileSystem {
-    Node* root;
-    Node* currentDir;
-    Node** path;
+    Node *root;
+    Node *currentDir;
+    Node **path;
     int pathLength;
     FileSystem();
     void createDefaultFileSystem();
     void printTree(Node*, int);
     void listDirectory(Node*);
-    Node* search(Node*, string);
+    Node *search(Node*, string);
     string getPath(Node*, Node*);
     void processCommand(string);
     ~FileSystem();
@@ -86,55 +87,60 @@ FileSystem::FileSystem() {
 }
 
 void FileSystem::createDefaultFileSystem() {
-    Node* lib = new Node("lib", false);
-    lib->addChild(new Node("LiquidCrystal_I2C.zip", true));
-    lib->addChild(new Node("ServoESP32-master.zip", true));
-    root->addChild(lib);
-
-    Node* src = new Node("src", false);
-    Node* smartFan = new Node("Smart_Fan", false);
-    smartFan->addChild(new Node("config.h", true));
-    smartFan->addChild(new Node("my_wifi.h", true));
-    smartFan->addChild(new Node("Smart_Fan.ino", true));
-    smartFan->addChild(new Node("wifi_communicator.h", true));
-    src->addChild(smartFan);
-    root->addChild(src);
+    Node *Pribadi = new Node("Pribadi", false);
+    Node *Kuliah = new Node("Kuliah", false);
+    root->addChild(new Node("pinguin.zip", true));
+    root->addChild(Pribadi);
+    root->addChild(Kuliah);
+    Kuliah->addChild(new Node("KTMS.jpg", true));
+    Kuliah->addChild(new Node("Cayo-4x6-Red.jpg", true));
+    Pribadi->addChild(new Node("KTP.jpg", true));
 }
 
-void FileSystem::printTree(Node* root, int depth) {
+void FileSystem::printTree(Node *root, int depth) {
     for (int i = 0; i < depth; i++) {
-        cout << "  ";
+        cout << "    ";
     }
-    cout << (root->isFile ? "" : "|-- ") << root->name << endl;
+    cout << (root->isFile ? "|- " : "|-- ") << root->name << endl;
     for (int i = 0; i < root->childCount; ++i) {
         printTree(root->children[i], depth + 1);
     }
 }
 
-void FileSystem::listDirectory(Node* dir) {
+void FileSystem::listDirectory(Node *dir) {
     if (dir->isFile) {
         cout << "Ini adalah file, bukan direktori." << endl;
         return;
     }
     for (int i = 0; i < dir->childCount; ++i) {
-        cout << (dir->children[i]->isFile ? "File: " : "Dir: ") << dir->children[i]->name << endl;
+        cout << dir->children[i]->name << "    ";
+        if (i==dir->childCount-1) cout << endl << endl;
     }
 }
 
-Node* FileSystem::search(Node* root, string name) {
-    if (root->name == name) {
-        return root;
-    }
-    for (int i = 0; i < root->childCount; ++i) {
-        Node* result = search(root->children[i], name);
-        if (result != nullptr) {
-            return result;
+
+Node* FileSystem::search(Node *root, string name) {
+    queue<Node*> toExplore;
+    toExplore.push(root);
+
+    while (!toExplore.empty()) {
+        Node* current = toExplore.front();
+        toExplore.pop();
+
+        if (current->name == name) {
+            return current;
+        }
+
+        for (int i = 0; i < current->childCount; ++i) {
+            toExplore.push(current->children[i]);
         }
     }
     return nullptr;
 }
 
-string FileSystem::getPath(Node* root, Node* target) {
+
+
+string FileSystem::getPath(Node *root, Node *target) {
     if (root == target) {
         return root->name;
     }
@@ -151,33 +157,40 @@ void FileSystem::processCommand(string command) {
     if (command == "exit") {
         exit(0);
     } 
-    else if (command.substr(0, 5) == "mkdir") {
+
+    else if (command.substr(0, 5) == "mkdir") { // untuk membuat direktori
         string dirName = command.substr(6);
         currentDir->addChild(new Node(dirName, false));
-    } 
-    else if (command.substr(0, 5) == "touch") {
+    }
+
+    else if (command.substr(0, 5) == "touch") { // untuk membuat file
         string fileName = command.substr(6);
         currentDir->addChild(new Node(fileName, true));
     } 
-    else if (command.substr(0, 6) == "rmdir") {
-        string dirName = command.substr(7);
+
+    else if (command.substr(0, 5) == "rmdir") { // untuk menghapus direktori
+        string dirName = command.substr(6);
         if (!currentDir->removeChild(dirName)) {
             cout << "Direktori tidak ditemukan." << endl;
         }
     }
-    else if (command.substr(0, 2) == "rm") {
+
+    else if (command.substr(0, 2) == "rm") { // untuk menghapus file
         string fileName = command.substr(3);
         if (!currentDir->removeChild(fileName)) {
             cout << "File tidak ditemukan." << endl;
         }
     } 
-    else if (command.substr(0, 2) == "ls") {
+
+    else if (command.substr(0, 2) == "ls") { // untuk menampilkan isi direktori
         listDirectory(currentDir);
     } 
-    else if (command.substr(0, 4) == "tree") {
+
+    else if (command.substr(0, 4) == "tree") { // untuk menampilkan tree direktori
         printTree(root, 0);
     } 
-    else if (command.substr(0, 5) == "find ") {
+
+    else if (command.substr(0, 5) == "find ") { // untuk menemukan file/direktori
         string name = command.substr(5);
         Node* result = search(root, name);
         if (result != nullptr) {
@@ -187,7 +200,8 @@ void FileSystem::processCommand(string command) {
             cout << "Tidak ditemukan." << endl;
         }
     } 
-    else if (command.substr(0, 2) == "cd") {
+
+    else if (command.substr(0, 2) == "cd") { // untuk menuju ke direktori tertentu
         string dirName = command.substr(3);
         if (dirName == "..") {
             if (pathLength > 0) {
@@ -206,8 +220,9 @@ void FileSystem::processCommand(string command) {
             }
         }
     } 
+
     else {
-        cout << "Perintah tidak dikenali." << endl;
+        cout << "Perintah invalid" << endl;
     }
 }
 
