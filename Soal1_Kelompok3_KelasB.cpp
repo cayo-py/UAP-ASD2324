@@ -1,6 +1,6 @@
 #include <iostream>
 #include <queue>  
-#include <string>
+// #include <string>
 using namespace std;
 
 struct Node {
@@ -101,7 +101,7 @@ void FileSystem::printTree(Node *root, int depth) {
     for (int i = 0; i < depth; i++) {
         cout << "    ";
     }
-    cout << (root->isFile ? "|- " : "|-- ") << root->name << endl;
+    cout << (root->isFile ? "|-- " : "|- ") << root->name << endl;
     for (int i = 0; i < root->childCount; ++i) {
         printTree(root->children[i], depth + 1);
     }
@@ -120,25 +120,23 @@ void FileSystem::listDirectory(Node *dir) {
 
 
 Node* FileSystem::search(Node *root, string name) {
-    queue<Node*> toExplore;
-    toExplore.push(root);
+    queue<Node*> Q;
+    Q.push(root);
 
-    while (!toExplore.empty()) {
-        Node* current = toExplore.front();
-        toExplore.pop();
+    while (!Q.empty()) {
+        Node *t = Q.front();
+        Q.pop();
 
-        if (current->name == name) {
-            return current;
+        if (t->name == name) {
+            return t;
         }
 
-        for (int i = 0; i < current->childCount; ++i) {
-            toExplore.push(current->children[i]);
+        for (int i = 0; i < t->childCount; ++i) {
+            Q.push(t->children[i]);
         }
     }
     return nullptr;
 }
-
-
 
 string FileSystem::getPath(Node *root, Node *target) {
     if (root == target) {
@@ -192,7 +190,7 @@ void FileSystem::processCommand(string command) {
 
     else if (command.substr(0, 5) == "find ") { // untuk menemukan file/direktori
         string name = command.substr(5);
-        Node* result = search(root, name);
+        Node *result = search(root, name);
         if (result != nullptr) {
             cout << "Path: " << getPath(root, result) << endl;
         } 
@@ -206,7 +204,7 @@ void FileSystem::processCommand(string command) {
         if (dirName == "..") {
             if (pathLength > 0) {
                 pathLength--;
-                currentDir = (pathLength > 0) ? path[pathLength - 1] : root;
+                currentDir = (pathLength > 0) ? path[pathLength-1] : root;
             }
         } 
         else {
@@ -234,6 +232,7 @@ FileSystem::~FileSystem() {
 int main() {
     FileSystem fs;
     string command;
+    string name;
 
     while (true) {
         cout << "/";
